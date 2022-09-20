@@ -38,25 +38,11 @@ func main() {
 	gl.Init()
 	fmt.Println("OpenGL Version: ", gogl.GetVersion())
 
-	vertexShaderSource :=
-		`#version 460 core
-		layout (location = 0) in vec3 aPos;
+	shaderProgram, err := gogl.CreateProgram("shaders/hello.vert", "shaders/hello.frag")
 
-		void main() 
-		{
-			gl_Position = vec4(aPos.x,aPos.y,aPos.z,1.0f);
-		}`
-
-	fragmentShaderSource :=
-		`#version 330 core
-		out vec4 FragColor;
-
-		void main() 
-		{
-			FragColor = vec4(1.0f,1.0f,0.0f,0.5f);			
-		}`
-
-	shaderProgram := gogl.CreateProgram(vertexShaderSource, fragmentShaderSource)
+	if err != nil {
+		panic(err)
+	}
 
 	vertices := []float32{
 		-0.5, -0.5, 0.0,
@@ -90,5 +76,7 @@ func main() {
 		gl.DrawArrays(gl.TRIANGLES, 0, 3)
 
 		window.GLSwap()
+
+		gogl.CheckShadersForChanges()
 	}
 }

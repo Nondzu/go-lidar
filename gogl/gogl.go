@@ -1,7 +1,11 @@
 package gogl
 
 import (
+	"errors"
+	"fmt"
+	"io/ioutil"
 	"strings"
+	"time"
 
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
@@ -11,11 +15,54 @@ type ProgramId uint32
 type VAOID uint32
 type VBOID uint32
 
+var loadedShaders []programInfo
+
+type programInfo struct {
+	vertPath string
+	fragPath string
+	modTime  time.Time
+}
+
+func CheckShadersForChanges() {
+	// for _, shaderInfo := range loadedShaders {
+	// 	file, err := os.Stat(shaderInfo.path)
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 	}
+
+	// 	modTime := file.ModTime()
+	// 	if !modTime.Equal(shaderInfo.modTime) {
+
+	// 		fmt.Println("Shader modified!")
+
+	// 	}
+
+	// }
+}
+
 func GetVersion() string {
 	return gl.GoStr(gl.GetString(gl.VERSION))
 }
 
-func CreateShader(shaderSource string, shaderType uint32) ShaderId {
+func LoadShader(path string, shaderType uint32) (ShaderId, error) {
+	shaderFile, err := ioutil.ReadFile(path)
+
+	if err != nil {
+		panic(err)
+	}
+
+	shaderFileStr := string(shaderFile)
+
+	shaderId, err := CreateShader(shaderFileStr, shaderType)
+	if err != nil {
+
+		return 0, err
+	}
+
+	return shaderId, nil
+}
+
+func CreateShader(shaderSource string, shaderType uint32) (ShaderId, error) {
 
 	shaderSource = shaderSource + "\x00"
 	shaderId := gl.CreateShader(shaderType)
@@ -32,17 +79,23 @@ func CreateShader(shaderSource string, shaderType uint32) ShaderId {
 		gl.GetShaderiv(shaderId, gl.INFO_LOG_LENGTH, &logLenght)
 		log := strings.Repeat("\x00", int(logLenght+1))
 		gl.GetShaderInfoLog(shaderId, logLenght, nil, gl.Str(log))
-
-		panic("Failed to compile shader : \n" + log)
+		fmt.Println("Failed to compile shader : \n" + log)
+		return 0, errors.New("failed to compile shader")
 	}
 
-	return ShaderId(shaderId)
+	return ShaderId(shaderId), nil
 }
 
-func CreateProgram(vertStr string, fragStr string) ProgramId {
+func CreateProgram(vertPath string, fragPath string) (ProgramId, error) {
 
-	vert := CreateShader(vertStr, gl.VERTEX_SHADER)
-	frag := CreateShader(fragStr, gl.FRAGMENT_SHADER)
+	vert, err := LoadShader(vertPath, gl.VERTEX_SHADER)
+	if err != nil {
+		return 0, err
+	}
+	frag, err := LoadShader(fragPath, gl.FRAGMENT_SHADER)
+	if err != nil {
+		return 0, err
+	}
 
 	shaderProgram := gl.CreateProgram()
 	gl.AttachShader(uint32(shaderProgram), uint32(vert))
@@ -58,12 +111,22 @@ func CreateProgram(vertStr string, fragStr string) ProgramId {
 		log := strings.Repeat("\x00", int(logLenght+1))
 		gl.GetProgramInfoLog(uint32(shaderProgram), logLenght, nil, gl.Str(log))
 
-		panic("Failed to link program : \n" + log)
+		return 0, fmt.Errorf("Failed to link program: \n" + log)
 	}
+
+	// TODO finish hotloading shader
+	// file, err := os.Stat(path)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+
+	// modTime := file.ModTime()
+	// loadedShaders = append(loadedShaders, ShaderInfo{path: path, modTime: modTime})
+
 	gl.DeleteShader(uint32(vert))
 	gl.DeleteShader(uint32(frag))
 
-	return ProgramId(shaderProgram)
+	return ProgramId(shaderProgram), nil
 }
 
 func GenBindBuffer(target uint32) VBOID {
