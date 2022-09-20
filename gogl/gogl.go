@@ -39,10 +39,14 @@ func CreateShader(shaderSource string, shaderType uint32) ShaderId {
 	return ShaderId(shaderId)
 }
 
-func CreateProgram(vertexShader ShaderId, fragmentShader ShaderId, shaderProgram ProgramId) {
-	// program := gl.CreateProgram()
-	gl.AttachShader(uint32(shaderProgram), uint32(vertexShader))
-	gl.AttachShader(uint32(shaderProgram), uint32(fragmentShader))
+func CreateProgram(vertStr string, fragStr string) ProgramId {
+
+	vert := CreateShader(vertStr, gl.VERTEX_SHADER)
+	frag := CreateShader(fragStr, gl.FRAGMENT_SHADER)
+
+	shaderProgram := gl.CreateProgram()
+	gl.AttachShader(uint32(shaderProgram), uint32(vert))
+	gl.AttachShader(uint32(shaderProgram), uint32(frag))
 	gl.LinkProgram(uint32(shaderProgram))
 
 	var success int32
@@ -56,6 +60,39 @@ func CreateProgram(vertexShader ShaderId, fragmentShader ShaderId, shaderProgram
 
 		panic("Failed to link program : \n" + log)
 	}
-	gl.DeleteShader(uint32(vertexShader))
-	gl.DeleteShader(uint32(fragmentShader))
+	gl.DeleteShader(uint32(vert))
+	gl.DeleteShader(uint32(frag))
+
+	return ProgramId(shaderProgram)
+}
+
+func GenBindBuffer(target uint32) VBOID {
+	var VBO uint32
+
+	gl.GenBuffers(1, &VBO)
+	gl.BindBuffer(target, VBO)
+	return VBOID(VBO)
+}
+
+func GenBindVertexArray() VAOID {
+	var VAO uint32
+	gl.GenVertexArrays(1, &VAO)
+	gl.BindVertexArray(VAO)
+	return VAOID(VAO)
+}
+
+func BindVertexArray(vaoID VAOID) {
+	gl.BindVertexArray(uint32(vaoID))
+}
+
+func BufferDataFloat(target uint32, data []float32, usage uint32) {
+	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, gl.Ptr(data), gl.STATIC_DRAW)
+}
+
+func UnbindVertexArray() {
+	gl.BindVertexArray(0)
+}
+
+func UseProgram(ProgramId ProgramId) {
+	gl.UseProgram(uint32(ProgramId))
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"unsafe"
 
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/nondzu/test1/gogl"
@@ -48,8 +47,6 @@ func main() {
 			gl_Position = vec4(aPos.x,aPos.y,aPos.z,1.0f);
 		}`
 
-	vertexShader := gogl.CreateShader(vertexShaderSource, gl.VERTEX_SHADER)
-
 	fragmentShaderSource :=
 		`#version 330 core
 		out vec4 FragColor;
@@ -58,10 +55,8 @@ func main() {
 		{
 			FragColor = vec4(1.0f,1.0f,0.0f,0.5f);			
 		}`
-	fragmentShader := gogl.CreateShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
 
-	shaderProgram := gl.CreateProgram()
-	gogl.CreateProgram(vertexShader, fragmentShader, gogl.ProgramId(shaderProgram))
+	shaderProgram := gogl.CreateProgram(vertexShaderSource, fragmentShaderSource)
 
 	vertices := []float32{
 		-0.5, -0.5, 0.0,
@@ -69,23 +64,16 @@ func main() {
 		0.0, 0.5, 0.0,
 	}
 
-	var VBO uint32
+	// VBO := gogl.GenBindBuffer(gl.ARRAY_BUFFER)
+	gogl.GenBindBuffer(gl.ARRAY_BUFFER)
+	VAO := gogl.GenBindVertexArray()
 
-	gl.GenBuffers(1, &VBO)
-	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
-
-	var VAO uint32
-	gl.GenVertexArrays(1, &VAO)
-	gl.BindVertexArray(VAO)
-
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*int(unsafe.Sizeof(vertices[0])), gl.Ptr(vertices), gl.STATIC_DRAW)
-
+	gogl.BufferDataFloat(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 3*4, nil)
 	gl.EnableVertexAttribArray(0)
-	gl.BindVertexArray(0)
+	gogl.UnbindVertexArray()
 
 	for {
-
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 
 			switch event.(type) {
@@ -96,11 +84,11 @@ func main() {
 		gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
-		gl.UseProgram(shaderProgram)
-		gl.BindVertexArray(VAO)
+		gogl.UseProgram(shaderProgram)
+		gogl.BindVertexArray(VAO)
+		// gl.BindFramebuffer(gl.ARRAY_BUFFER, uint32(VBO))
 		gl.DrawArrays(gl.TRIANGLES, 0, 3)
 
 		window.GLSwap()
-
 	}
 }
