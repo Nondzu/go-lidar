@@ -5,40 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
-	"time"
 
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type ShaderId uint32
 type ProgramId uint32
-type VAOID uint32
-type VBOID uint32
-
-var loadedShaders []programInfo
-
-type programInfo struct {
-	vertPath string
-	fragPath string
-	modTime  time.Time
-}
-
-func CheckShadersForChanges() {
-	// for _, shaderInfo := range loadedShaders {
-	// 	file, err := os.Stat(shaderInfo.path)
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 	}
-
-	// 	modTime := file.ModTime()
-	// 	if !modTime.Equal(shaderInfo.modTime) {
-
-	// 		fmt.Println("Shader modified!")
-
-	// 	}
-
-	// }
-}
+type BufferID uint32
 
 func GetVersion() string {
 	return gl.GoStr(gl.GetString(gl.VERSION))
@@ -129,27 +102,37 @@ func CreateProgram(vertPath string, fragPath string) (ProgramId, error) {
 	return ProgramId(shaderProgram), nil
 }
 
-func GenBindBuffer(target uint32) VBOID {
+func GenBindBuffer(target uint32) BufferID {
 	var VBO uint32
 
 	gl.GenBuffers(1, &VBO)
 	gl.BindBuffer(target, VBO)
-	return VBOID(VBO)
+	return BufferID(VBO)
 }
 
-func GenBindVertexArray() VAOID {
+func GenBindVertexArray() BufferID {
 	var VAO uint32
 	gl.GenVertexArrays(1, &VAO)
 	gl.BindVertexArray(VAO)
-	return VAOID(VAO)
+	return BufferID(VAO)
 }
 
-func BindVertexArray(vaoID VAOID) {
+func GenEBO() BufferID {
+	var EBO uint32
+	gl.GenBuffers(1, &EBO)
+	return BufferID(EBO)
+}
+
+func BindVertexArray(vaoID BufferID) {
 	gl.BindVertexArray(uint32(vaoID))
 }
 
 func BufferDataFloat(target uint32, data []float32, usage uint32) {
-	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, gl.Ptr(data), gl.STATIC_DRAW)
+	gl.BufferData(target, len(data)*4, gl.Ptr(data), usage)
+}
+
+func BufferDataInt(target uint32, data []uint32, usage uint32) {
+	gl.BufferData(target, len(data)*4, gl.Ptr(data), usage)
 }
 
 func UnbindVertexArray() {

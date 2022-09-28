@@ -9,8 +9,8 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-const winWidth = 720
-const winHeight = 480
+const winWidth = 1920
+const winHeight = 1080
 
 func main() {
 
@@ -25,7 +25,7 @@ func main() {
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 3)
 
-	window, err := sdl.CreateWindow("Hello triangle", 200, 200, winWidth, winHeight, uint32(sdl.WINDOW_OPENGL))
+	window, err := sdl.CreateWindow("Hello triangle", 50, 50, winWidth, winHeight, uint32(sdl.WINDOW_OPENGL))
 
 	if err != nil {
 		panic(err)
@@ -38,26 +38,41 @@ func main() {
 	gl.Init()
 	fmt.Println("OpenGL Version: ", gogl.GetVersion())
 
-	shaderProgram, err := gogl.CreateProgram("shaders/hello.vert", "shaders/hello.frag")
+	shaderProgram, err := gogl.NewShader("shaders/hello.vert", "shaders/hello.frag")
 
 	if err != nil {
 		panic(err)
 	}
 
 	vertices := []float32{
-		-0.5, -0.5, 0.0,
-		0.5, -0.5, 0.0,
-		0.0, 0.5, 0.0,
+		1.0, 1.0, 0.0, 1.0, 1.0,
+		1.0, -1.0, 0.0, 1.0, 0.0,
+		-1.0, -1.0, 0.0, 0.0, 0.0,
+		-1.0, 1.0, 0.0, 0.0, 1.0,
 	}
 
-	// VBO := gogl.GenBindBuffer(gl.ARRAY_BUFFER)
+	indices := []uint32{
+		0, 1, 3, // triangle 1
+		1, 2, 3, // triangle 2
+	}
+
 	gogl.GenBindBuffer(gl.ARRAY_BUFFER)
 	VAO := gogl.GenBindVertexArray()
-
 	gogl.BufferDataFloat(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 3*4, nil)
+	gogl.GenBindBuffer(gl.ELEMENT_ARRAY_BUFFER)
+	gogl.BufferDataInt(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
+
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 5*4, nil)
 	gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 5*4, gl.PtrOffset(3*4))
+	gl.EnableVertexAttribArray(1)
+
 	gogl.UnbindVertexArray()
+
+	var x float32 = 1.0
+	// var y float32 = 0.5
+
+	// gogl.set
 
 	for {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -70,13 +85,20 @@ func main() {
 		gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
-		gogl.UseProgram(shaderProgram)
+		// gogl.UseProgram(shaderProgram)
+		shaderProgram.Use()
+
+		shaderProgram.SetFloat("x", x)
+		shaderProgram.SetFloat("y", 0.0)
 		gogl.BindVertexArray(VAO)
 		// gl.BindFramebuffer(gl.ARRAY_BUFFER, uint32(VBO))
-		gl.DrawArrays(gl.TRIANGLES, 0, 3)
+		// gl.DrawArrays(gl.TRIANGLES, 0, 3)
+		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 
 		window.GLSwap()
 
-		gogl.CheckShadersForChanges()
+		shaderProgram.CheckShadersForChanges()
+
+		x = x + 0.05
 	}
 }
