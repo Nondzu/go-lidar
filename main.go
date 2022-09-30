@@ -10,10 +10,8 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// Go 42 	https://www.youtube.com/watch?v=XjOrF_OmXsY&list=PLDZujg-VgQlZUy1iCqBbe5faZLMkA3g2x&index=45&ab_channel=JackMott - work on
-// Go 43	https://www.youtube.com/watch?v=ogxPnneEPSM&list=PLDZujg-VgQlZUy1iCqBbe5faZLMkA3g2x&index=43&ab_channel=JackMott - todo
-const winWidth = 720
-const winHeight = 480
+const winWidth = 1280
+const winHeight = 720
 
 func mglTest() {
 	x := mgl32.NewVecN(2)
@@ -23,8 +21,6 @@ func mglTest() {
 func main() {
 
 	mglTest()
-	// projection := mgl32.Perspective(mgl32.DegToRad(45.0), float32(1)/1, 0.1, 10.0)
-	// _ = projection
 	err := sdl.Init(uint32(sdl.INIT_EVERYTHING))
 
 	if err != nil {
@@ -58,22 +54,64 @@ func main() {
 	texture := gogl.LoadTextureAlpha("assets/tex.png")
 
 	vertices := []float32{
-		0.5, 0.5, 0.0, 0.5, 0.5,
-		0.5, -0.5, 0.0, 0.5, 0.0,
-		-0.5, -0.5, 0.0, 0.0, 0.0,
-		-0.5, 0.5, 0.0, 0.0, 0.5,
+		-0.5, -0.5, -0.5, 0.0, 0.0,
+		0.5, -0.5, -0.5, 1.0, 0.0,
+		0.5, 0.5, -0.5, 1.0, 1.0,
+		0.5, 0.5, -0.5, 1.0, 1.0,
+		-0.5, 0.5, -0.5, 0.0, 1.0,
+		-0.5, -0.5, -0.5, 0.0, 0.0,
+
+		-0.5, -0.5, 0.5, 0.0, 0.0,
+		0.5, -0.5, 0.5, 1.0, 0.0,
+		0.5, 0.5, 0.5, 1.0, 1.0,
+		0.5, 0.5, 0.5, 1.0, 1.0,
+		-0.5, 0.5, 0.5, 0.0, 1.0,
+		-0.5, -0.5, 0.5, 0.0, 0.0,
+
+		-0.5, 0.5, 0.5, 1.0, 0.0,
+		-0.5, 0.5, -0.5, 1.0, 1.0,
+		-0.5, -0.5, -0.5, 0.0, 1.0,
+		-0.5, -0.5, -0.5, 0.0, 1.0,
+		-0.5, -0.5, 0.5, 0.0, 0.0,
+		-0.5, 0.5, 0.5, 1.0, 0.0,
+
+		0.5, 0.5, 0.5, 1.0, 0.0,
+		0.5, 0.5, -0.5, 1.0, 1.0,
+		0.5, -0.5, -0.5, 0.0, 1.0,
+		0.5, -0.5, -0.5, 0.0, 1.0,
+		0.5, -0.5, 0.5, 0.0, 0.0,
+		0.5, 0.5, 0.5, 1.0, 0.0,
+
+		-0.5, -0.5, -0.5, 0.0, 1.0,
+		0.5, -0.5, -0.5, 1.0, 1.0,
+		0.5, -0.5, 0.5, 1.0, 0.0,
+		0.5, -0.5, 0.5, 1.0, 0.0,
+		-0.5, -0.5, 0.5, 0.0, 0.0,
+		-0.5, -0.5, -0.5, 0.0, 1.0,
+
+		-0.5, 0.5, -0.5, 0.0, 1.0,
+		0.5, 0.5, -0.5, 1.0, 1.0,
+		0.5, 0.5, 0.5, 1.0, 0.0,
+		0.5, 0.5, 0.5, 1.0, 0.0,
+		-0.5, 0.5, 0.5, 0.0, 0.0,
+		-0.5, 0.5, -0.5, 0.0, 1.0,
 	}
 
-	indices := []uint32{
-		0, 1, 3, // triangle 1
-		1, 2, 3, // triangle 2
+	cubePositions := []mgl32.Vec3{
+		{0.0, 0.0, 0.0},
+		{3.0, 0.0, 0.0},
+		{6.0, 0.0, 0.0},
+		{3.0, 3.0, 0.0},
+		{3.0, 6.0, 0.0},
+
+		{2.0, 4.5, -15.0},
+		{2.0, 5.0, -10.0},
 	}
+	_ = cubePositions
 
 	gogl.GenBindBuffer(gl.ARRAY_BUFFER)
 	VAO := gogl.GenBindVertexArray()
 	gogl.BufferDataFloat(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
-	gogl.GenBindBuffer(gl.ELEMENT_ARRAY_BUFFER)
-	gogl.BufferDataInt(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
 
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 5*4, nil)
 	gl.EnableVertexAttribArray(0)
@@ -82,8 +120,9 @@ func main() {
 
 	gogl.UnbindVertexArray()
 
-	var x float32 = 1.0
-
+	var x float32 = 0
+	var z float32 = -3.0
+	keyboardState := sdl.GetKeyboardState()
 	for {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 
@@ -95,23 +134,45 @@ func main() {
 		gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
-		// gogl.UseProgram(shaderProgram)
+		if keyboardState[sdl.SCANCODE_LEFT] != 0 {
+			x = x - .1
+		}
+		if keyboardState[sdl.SCANCODE_RIGHT] != 0 {
+			x = x + .1
+		}
+
+		if keyboardState[sdl.SCANCODE_UP] != 0 {
+			z = z + .1
+		}
+
+		if keyboardState[sdl.SCANCODE_DOWN] != 0 {
+			z = z - .1
+		}
+
 		shaderProgram.Use()
+		projectionMatrix := mgl32.Perspective(mgl32.DegToRad(45.0), float32(winWidth)/float32(winHeight), 0.1, 100.0)
+		viewMatrix := mgl32.Ident4()
+		viewMatrix = mgl32.Translate3D(x, -3.0, z)
 
-		shaderProgram.SetFloat("x", x)
-		shaderProgram.SetFloat("y", 0.0)
+		shaderProgram.SetMat4("projection", projectionMatrix)
+		shaderProgram.SetMat4("view", viewMatrix)
 		gogl.BindTexture(texture)
-
 		gogl.BindVertexArray(VAO)
 
-		// gl.BindFramebuffer(gl.ARRAY_BUFFER, uint32(VBO))
-		// gl.DrawArrays(gl.TRIANGLES, 0, 3)
-		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
+		for i, pos := range cubePositions {
+
+			modelMatrix := mgl32.Ident4()
+
+			modelMatrix = mgl32.Translate3D(pos.X(), pos.Y(), pos.Z()).Mul4(modelMatrix)
+
+			angle := 20.0 * float32(i)
+			modelMatrix = mgl32.HomogRotate3D(mgl32.DegToRad(angle), mgl32.Vec3{1.0, 0.3, 0.5}).Mul4(modelMatrix)
+			shaderProgram.SetMat4("model", modelMatrix)
+
+			gl.DrawArrays(gl.TRIANGLES, 0, 36)
+		}
 
 		window.GLSwap()
-
 		shaderProgram.CheckShadersForChanges()
-
-		x = x + 0.05
 	}
 }
