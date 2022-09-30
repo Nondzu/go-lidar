@@ -25,14 +25,23 @@ func NewShader(vertexPath string, framentPath string) (*Shader, error) {
 		return nil, err
 	}
 
-	result := &Shader{id, vertexPath, framentPath, getModifiedTime(vertexPath), getModifiedTime(framentPath)}
+	vertTime, err := getModifiedTime(vertexPath)
+	if err != nil {
+		return nil, err
+	}
+
+	fragTime, err := getModifiedTime(framentPath)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &Shader{id, vertexPath, framentPath, vertTime, fragTime}
 	loadedShaders[id] = result
 
 	return result, nil
 }
 
 func (shader *Shader) Use() {
-	// shader := loadedShaders[id]
 	UseProgram(shader.id)
 }
 
@@ -42,11 +51,17 @@ func (shader *Shader) SetFloat(name string, value float32) {
 	gl.Uniform1f(location, value)
 }
 
-func (shader *Shader) CheckShadersForChanges() {
-	// for _, shader := range loadedShaders {
+func (shader *Shader) CheckShadersForChanges() error {
 
-	vertexModTime := getModifiedTime(shader.vertexPath)
-	fragmentModTime := getModifiedTime(shader.framgentPath)
+	vertexModTime, err := getModifiedTime(shader.vertexPath)
+	if err != nil {
+		return err
+	}
+
+	fragmentModTime, err := getModifiedTime(shader.framgentPath)
+	if err != nil {
+		return err
+	}
 
 	if !vertexModTime.Equal(shader.vertexModified) ||
 		!fragmentModTime.Equal(shader.fragmentModified) {
@@ -59,14 +74,15 @@ func (shader *Shader) CheckShadersForChanges() {
 			shader.id = id
 		}
 	}
-	// }
+	return nil
 }
 
-func getModifiedTime(filePath string) time.Time {
+func getModifiedTime(filePath string) (time.Time, error) {
 	file, err := os.Stat(filePath)
 	if err != nil {
 		fmt.Println(err)
+		return time.Time{}, err
 	}
 
-	return file.ModTime()
+	return file.ModTime(), nil
 }

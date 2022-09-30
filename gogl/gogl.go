@@ -3,7 +3,9 @@ package gogl
 import (
 	"errors"
 	"fmt"
+	"image/png"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/go-gl/gl/v3.3-core/gl"
@@ -13,6 +15,8 @@ type ShaderId uint32
 type ProgramId uint32
 type BufferID uint32
 
+type TextureID uint32
+
 func GetVersion() string {
 	return gl.GoStr(gl.GetString(gl.VERSION))
 }
@@ -21,7 +25,8 @@ func LoadShader(path string, shaderType uint32) (ShaderId, error) {
 	shaderFile, err := ioutil.ReadFile(path)
 
 	if err != nil {
-		panic(err)
+		return 0, err
+		// panic(err)
 	}
 
 	shaderFileStr := string(shaderFile)
@@ -33,6 +38,61 @@ func LoadShader(path string, shaderType uint32) (ShaderId, error) {
 	}
 
 	return shaderId, nil
+}
+
+func LoadTextureAlpha(filename string) TextureID {
+	infile, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer infile.Close()
+
+	img, err := png.Decode(infile)
+	if err != nil {
+		panic(err)
+	}
+
+	w := img.Bounds().Max.X
+	h := img.Bounds().Max.Y
+
+	pixels := make([]byte, w*h*4)
+	bIndex := 0
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			r, g, b, a := img.At(x, y).RGBA()
+			pixels[bIndex] = byte(r / 256)
+			bIndex++
+			pixels[bIndex] = byte(g / 256)
+			bIndex++
+			pixels[bIndex] = byte(b / 256)
+			bIndex++
+			pixels[bIndex] = byte(a / 256)
+			bIndex++
+		}
+	}
+	texture := GenBindTexture()
+
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.REPEAT)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(w), int32(h), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(pixels))
+
+	gl.GenerateMipmap(gl.TEXTURE_2D)
+
+	return texture
+}
+
+func GenBindTexture() TextureID {
+	var texId uint32
+
+	gl.GenTextures(1, &texId)
+	gl.BindTexture(gl.TEXTURE_2D, texId)
+	return TextureID(texId)
+}
+
+func BindTexture(id TextureID) {
+	gl.BindTexture(gl.TEXTURE_2D, uint32(id))
 }
 
 func CreateShader(shaderSource string, shaderType uint32) (ShaderId, error) {

@@ -4,16 +4,27 @@ import (
 	"fmt"
 
 	"github.com/go-gl/gl/v3.3-core/gl"
+	"github.com/go-gl/mathgl/mgl32"
 	"github.com/nondzu/test1/gogl"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-const winWidth = 1920
-const winHeight = 1080
+// Go 42 	https://www.youtube.com/watch?v=XjOrF_OmXsY&list=PLDZujg-VgQlZUy1iCqBbe5faZLMkA3g2x&index=45&ab_channel=JackMott - work on
+// Go 43	https://www.youtube.com/watch?v=ogxPnneEPSM&list=PLDZujg-VgQlZUy1iCqBbe5faZLMkA3g2x&index=43&ab_channel=JackMott - todo
+const winWidth = 720
+const winHeight = 480
+
+func mglTest() {
+	x := mgl32.NewVecN(2)
+	fmt.Printf("x: %v\n", x)
+}
 
 func main() {
 
+	mglTest()
+	// projection := mgl32.Perspective(mgl32.DegToRad(45.0), float32(1)/1, 0.1, 10.0)
+	// _ = projection
 	err := sdl.Init(uint32(sdl.INIT_EVERYTHING))
 
 	if err != nil {
@@ -38,17 +49,19 @@ func main() {
 	gl.Init()
 	fmt.Println("OpenGL Version: ", gogl.GetVersion())
 
-	shaderProgram, err := gogl.NewShader("shaders/hello.vert", "shaders/hello.frag")
+	shaderProgram, err := gogl.NewShader("shaders/hello.vert", "shaders/quadtexture.frag")
 
 	if err != nil {
 		panic(err)
 	}
 
+	texture := gogl.LoadTextureAlpha("assets/tex.png")
+
 	vertices := []float32{
-		1.0, 1.0, 0.0, 1.0, 1.0,
-		1.0, -1.0, 0.0, 1.0, 0.0,
-		-1.0, -1.0, 0.0, 0.0, 0.0,
-		-1.0, 1.0, 0.0, 0.0, 1.0,
+		0.5, 0.5, 0.0, 0.5, 0.5,
+		0.5, -0.5, 0.0, 0.5, 0.0,
+		-0.5, -0.5, 0.0, 0.0, 0.0,
+		-0.5, 0.5, 0.0, 0.0, 0.5,
 	}
 
 	indices := []uint32{
@@ -70,9 +83,6 @@ func main() {
 	gogl.UnbindVertexArray()
 
 	var x float32 = 1.0
-	// var y float32 = 0.5
-
-	// gogl.set
 
 	for {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -90,7 +100,10 @@ func main() {
 
 		shaderProgram.SetFloat("x", x)
 		shaderProgram.SetFloat("y", 0.0)
+		gogl.BindTexture(texture)
+
 		gogl.BindVertexArray(VAO)
+
 		// gl.BindFramebuffer(gl.ARRAY_BUFFER, uint32(VBO))
 		// gl.DrawArrays(gl.TRIANGLES, 0, 3)
 		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
