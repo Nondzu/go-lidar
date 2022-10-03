@@ -29,6 +29,8 @@ func main() {
 
 	window, err := sdl.CreateWindow("Hello triangle", 50, 50, winWidth, winHeight, uint32(sdl.WINDOW_OPENGL))
 
+	sdl.SetRelativeMouseMode(true)
+
 	if err != nil {
 		panic(err)
 	}
@@ -124,14 +126,11 @@ func main() {
 	position := mgl32.Vec3{2.0, 2.5, 10.0}
 	worldUp := mgl32.Vec3{0.0, 1.0, 0.0}
 
-	camera := gogl.NewCamera(position, worldUp, -90.0, 0.0, 0.03, 0.03)
-	_ = camera
-	//
+	camera := gogl.NewCamera(position, worldUp, -90.0, 0.0, 0.03, 0.05)
 
 	keyboardState := sdl.GetKeyboardState()
 	var elapsedTime float32
 
-	prevMouseX, prevMouseY, _ := sdl.GetMouseState()
 	for {
 		frameStart := time.Now()
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -167,12 +166,8 @@ func main() {
 			dir = gogl.Backward
 		}
 
-		mouseX, mouseY, _ := sdl.GetMouseState()
-
-		camera.UpdateCamera(dir, elapsedTime, float32(mouseX-prevMouseX), float32(mouseY-prevMouseY))
-
-		prevMouseX = mouseX
-		prevMouseY = mouseY
+		mouseX, mouseY, _ := sdl.GetRelativeMouseState()
+		camera.UpdateCamera(dir, elapsedTime, float32(mouseX), float32(mouseY))
 
 		gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)

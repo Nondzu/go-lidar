@@ -64,11 +64,17 @@ func (camera *Camera) UpdateCamera(dir Direction, deltaT, xoffset, yoffset float
 	case Nowhere:
 	}
 
-	xoffset *= camera.MouseSens
-	yoffset *= camera.MouseSens
+	camera.Yaw += xoffset * camera.MouseSens
+	camera.Pitch -= yoffset * camera.MouseSens
 
-	camera.Yaw += xoffset
-	camera.Pitch += yoffset
+	// fmt.Printf("camera.Yaw: %v || camera.Pitch: %v || xoffset: %v || yoffset: %v || \n", camera.Yaw, camera.Pitch, xoffset, yoffset)
+	// if camera.Pitch > 90.0 {
+	// 	camera.Pitch = 90.0
+	// }
+	// if camera.Pitch < -90.0 {
+	// 	camera.Pitch = -90.0
+	// }
+
 	camera.updateVectors()
 }
 
