@@ -11,7 +11,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-const winWidth = 1280
+const winWidth = 720
 const winHeight = 720
 
 func main() {
@@ -44,7 +44,7 @@ func main() {
 
 	fmt.Println("OpenGL Version: ", gogl.GetVersion())
 
-	shaderProgram, err := gogl.NewShader("shaders/hello.vert", "shaders/quadtexture.frag")
+	shaderProgram, err := gogl.NewShader("shaders/light.vert", "shaders/quadtexture-light.frag")
 
 	if err != nil {
 		panic(err)
@@ -96,6 +96,34 @@ func main() {
 		-0.5, 0.5, -0.5, 0.0, 1.0,
 	}
 
+	normals := make([]float32, 36*3)
+
+	for tri := 0; tri < 12; tri++ {
+
+		index := tri * 15
+
+		p1 := mgl32.Vec3{vertices[index], vertices[index+1], vertices[index+2]}
+		index += 5
+
+		p2 := mgl32.Vec3{vertices[index], vertices[index+1], vertices[index+2]}
+		index += 5
+
+		p3 := mgl32.Vec3{vertices[index], vertices[index+1], vertices[index+2]}
+		normal := gogl.TriangleNormal(p1, p2, p3)
+
+		normals[tri*9] = normal.X()
+		normals[tri*9+1] = normal.Y()
+		normals[tri*9+2] = normal.Z()
+
+		normals[tri*9+3] = normal.X()
+		normals[tri*9+4] = normal.Y()
+		normals[tri*9+5] = normal.Z()
+
+		normals[tri*9+6] = normal.X()
+		normals[tri*9+7] = normal.Y()
+		normals[tri*9+8] = normal.Z()
+	}
+
 	cubePositions := []mgl32.Vec3{
 		{0.0, 0.0, 0.0},
 		{3.0, 0.0, 0.0},
@@ -106,7 +134,6 @@ func main() {
 		{2.0, 4.5, -15.0},
 		{2.0, 5.0, -10.0},
 	}
-	_ = cubePositions
 
 	gogl.GenBindBuffer(gl.ARRAY_BUFFER)
 	VAO := gogl.GenBindVertexArray()
@@ -117,33 +144,43 @@ func main() {
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 5*4, gl.PtrOffset(3*4))
 	gl.EnableVertexAttribArray(1)
 
-	gogl.UnbindVertexArray()
+	//NAO
+	gogl.GenBindBuffer(gl.ARRAY_BUFFER)
+	gogl.BufferDataFloat(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW)
+	gl.VertexAttribPointer(2, 3, gl.FLOAT, false, 3*4, nil)
+	gl.EnableVertexAttribArray(2)
+	//
+	//
 
-	// var x float32 = 0
-	// var z float32 = -3.0
+	gogl.UnbindVertexArray()
 
 	//new camera
 	position := mgl32.Vec3{2.0, 2.5, 10.0}
 	worldUp := mgl32.Vec3{0.0, 1.0, 0.0}
-
-	camera := gogl.NewCamera(position, worldUp, -90.0, 0.0, 0.03, 0.05)
+	camera := gogl.NewCamera(position, worldUp, -90.0, 0, 0.02, 0.15)
 
 	keyboardState := sdl.GetKeyboardState()
 	var elapsedTime float32
+	var mouseX, mouseY int32
 
 	for {
 		frameStart := time.Now()
+		mouseX = 0
+		mouseY = 0
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 
-			switch event.(type) {
+			switch e := event.(type) {
+			case *sdl.MouseMotionEvent:
+				mouseX = e.XRel
+				mouseY = e.YRel
+
 			case *sdl.QuitEvent:
 				return
+
 			}
 		}
 
-		// var dir gogl.Direction
 		dir := gogl.Nowhere
-
 		if keyboardState[sdl.SCANCODE_A] != 0 {
 			dir = gogl.Left
 		}
@@ -151,22 +188,22 @@ func main() {
 			dir = gogl.Right
 		}
 
-		if keyboardState[sdl.SCANCODE_W] != 0 {
+		if keyboardState[sdl.SCANCODE_Q] != 0 {
 			dir = gogl.Up
 		}
-		if keyboardState[sdl.SCANCODE_S] != 0 {
+		if keyboardState[sdl.SCANCODE_E] != 0 {
 			dir = gogl.Down
 		}
 
-		if keyboardState[sdl.SCANCODE_Q] != 0 {
+		if keyboardState[sdl.SCANCODE_W] != 0 {
 			dir = gogl.Forward
 		}
 
-		if keyboardState[sdl.SCANCODE_E] != 0 {
+		if keyboardState[sdl.SCANCODE_S] != 0 {
 			dir = gogl.Backward
 		}
 
-		mouseX, mouseY, _ := sdl.GetRelativeMouseState()
+		// mouseX, mouseY, _ := sdl.GetRelativeMouseState()
 		camera.UpdateCamera(dir, elapsedTime, float32(mouseX), float32(mouseY))
 
 		gl.ClearColor(0.0, 0.0, 0.0, 0.0)
@@ -180,6 +217,12 @@ func main() {
 
 		shaderProgram.SetMat4("projection", projectionMatrix)
 		shaderProgram.SetMat4("view", viewMatrix)
+
+		//set light
+		shaderProgram.SetVec3("lightPos", mgl32.Vec3{2.0, 5.0, 5.0})
+		shaderProgram.SetVec3("lightColor", mgl32.Vec3{1.0, 0.0, 0.0})
+		shaderProgram.SetVec3("ambientColor", mgl32.Vec3{0.5, 0.5, 0.0})
+
 		gogl.BindTexture(texture)
 		gogl.BindVertexArray(VAO)
 
