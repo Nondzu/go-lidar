@@ -219,9 +219,10 @@ func main() {
 		shaderProgram.SetMat4("view", viewMatrix)
 
 		//set light
-		shaderProgram.SetVec3("lightPos", mgl32.Vec3{2.0, 5.0, 5.0})
-		shaderProgram.SetVec3("lightColor", mgl32.Vec3{1.0, 0.0, 0.0})
+		shaderProgram.SetVec3("lightPos", mgl32.Vec3{0.0, 0.0, 1.0})
+		shaderProgram.SetVec3("lightColor", mgl32.Vec3{0.4, 0.4, 0.4})
 		shaderProgram.SetVec3("ambientColor", mgl32.Vec3{0.5, 0.5, 0.0})
+		shaderProgram.SetVec3("viewPos", camera.Position)
 
 		gogl.BindTexture(texture)
 		gogl.BindVertexArray(VAO)
