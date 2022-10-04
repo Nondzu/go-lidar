@@ -66,6 +66,13 @@ func (shader *Shader) SetVec3(name string, v mgl32.Vec3) {
 	gl.Uniform3fv(location, 1, &v3[0])
 }
 
+func (shader *Shader) SetVec4(name string, v mgl32.Vec4) {
+	name_cstr := gl.Str(name + "\x00")
+	location := gl.GetUniformLocation(uint32(shader.id), name_cstr)
+	v3 := [4]float32(v)
+	gl.Uniform4fv(location, 1, &v3[0])
+}
+
 func (shader *Shader) CheckShadersForChanges() error {
 
 	vertexModTime, err := getModifiedTime(shader.vertexPath)

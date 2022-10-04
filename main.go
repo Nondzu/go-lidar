@@ -8,14 +8,16 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/nondzu/test1/gogl"
 
+	"github.com/PerformLine/go-stockutil/colorutil"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-const winWidth = 720
-const winHeight = 720
+const winWidth = 1700
+const winHeight = 900
 
 func main() {
 
+	go calcAngle()
 	err := sdl.Init(uint32(sdl.INIT_EVERYTHING))
 
 	if err != nil {
@@ -44,7 +46,7 @@ func main() {
 
 	fmt.Println("OpenGL Version: ", gogl.GetVersion())
 
-	shaderProgram, err := gogl.NewShader("shaders/light.vert", "shaders/quadtexture-light.frag")
+	shaderProgram, err := gogl.NewShader("shaders/hello.vert", "shaders/quadtexture.frag")
 
 	if err != nil {
 		panic(err)
@@ -52,105 +54,25 @@ func main() {
 
 	texture := gogl.LoadTextureAlpha("assets/tex2.png")
 
-	vertices := []float32{
-		-0.5, -0.5, -0.5, 0.0, 0.0,
-		0.5, -0.5, -0.5, 1.0, 0.0,
-		0.5, 0.5, -0.5, 1.0, 1.0,
-		0.5, 0.5, -0.5, 1.0, 1.0,
-		-0.5, 0.5, -0.5, 0.0, 1.0,
-		-0.5, -0.5, -0.5, 0.0, 0.0,
-
-		-0.5, -0.5, 0.5, 0.0, 0.0,
-		0.5, -0.5, 0.5, 1.0, 0.0,
-		0.5, 0.5, 0.5, 1.0, 1.0,
-		0.5, 0.5, 0.5, 1.0, 1.0,
-		-0.5, 0.5, 0.5, 0.0, 1.0,
-		-0.5, -0.5, 0.5, 0.0, 0.0,
-
-		-0.5, 0.5, 0.5, 1.0, 0.0,
-		-0.5, 0.5, -0.5, 1.0, 1.0,
-		-0.5, -0.5, -0.5, 0.0, 1.0,
-		-0.5, -0.5, -0.5, 0.0, 1.0,
-		-0.5, -0.5, 0.5, 0.0, 0.0,
-		-0.5, 0.5, 0.5, 1.0, 0.0,
-
-		0.5, 0.5, 0.5, 1.0, 0.0,
-		0.5, 0.5, -0.5, 1.0, 1.0,
-		0.5, -0.5, -0.5, 0.0, 1.0,
-		0.5, -0.5, -0.5, 0.0, 1.0,
-		0.5, -0.5, 0.5, 0.0, 0.0,
-		0.5, 0.5, 0.5, 1.0, 0.0,
-
-		-0.5, -0.5, -0.5, 0.0, 1.0,
-		0.5, -0.5, -0.5, 1.0, 1.0,
-		0.5, -0.5, 0.5, 1.0, 0.0,
-		0.5, -0.5, 0.5, 1.0, 0.0,
-		-0.5, -0.5, 0.5, 0.0, 0.0,
-		-0.5, -0.5, -0.5, 0.0, 1.0,
-
-		-0.5, 0.5, -0.5, 0.0, 1.0,
-		0.5, 0.5, -0.5, 1.0, 1.0,
-		0.5, 0.5, 0.5, 1.0, 0.0,
-		0.5, 0.5, 0.5, 1.0, 0.0,
-		-0.5, 0.5, 0.5, 0.0, 0.0,
-		-0.5, 0.5, -0.5, 0.0, 1.0,
-	}
-
-	normals := make([]float32, 36*3)
-
-	for tri := 0; tri < 12; tri++ {
-
-		index := tri * 15
-
-		p1 := mgl32.Vec3{vertices[index], vertices[index+1], vertices[index+2]}
-		index += 5
-
-		p2 := mgl32.Vec3{vertices[index], vertices[index+1], vertices[index+2]}
-		index += 5
-
-		p3 := mgl32.Vec3{vertices[index], vertices[index+1], vertices[index+2]}
-		normal := gogl.TriangleNormal(p1, p2, p3)
-
-		normals[tri*9] = normal.X()
-		normals[tri*9+1] = normal.Y()
-		normals[tri*9+2] = normal.Z()
-
-		normals[tri*9+3] = normal.X()
-		normals[tri*9+4] = normal.Y()
-		normals[tri*9+5] = normal.Z()
-
-		normals[tri*9+6] = normal.X()
-		normals[tri*9+7] = normal.Y()
-		normals[tri*9+8] = normal.Z()
-	}
-
 	cubePositions := []mgl32.Vec3{
 		{0.0, 0.0, 0.0},
-		{3.0, 0.0, 0.0},
-		{6.0, 0.0, 0.0},
 		{3.0, 3.0, 0.0},
-		{3.0, 6.0, 0.0},
+		// {6.0, 0.0, 0.0},
+		// {3.0, 3.0, 0.0},
+		// {3.0, 6.0, 0.0},
 
-		{2.0, 4.5, -15.0},
-		{2.0, 5.0, -10.0},
+		// {2.0, 4.5, -15.0},
+		// {2.0, 5.0, -10.0},
 	}
 
 	gogl.GenBindBuffer(gl.ARRAY_BUFFER)
 	VAO := gogl.GenBindVertexArray()
-	gogl.BufferDataFloat(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+	gogl.BufferDataFloat(gl.ARRAY_BUFFER, cubeVertices, gl.STATIC_DRAW)
 
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 5*4, nil)
 	gl.EnableVertexAttribArray(0)
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 5*4, gl.PtrOffset(3*4))
 	gl.EnableVertexAttribArray(1)
-
-	//NAO
-	gogl.GenBindBuffer(gl.ARRAY_BUFFER)
-	gogl.BufferDataFloat(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW)
-	gl.VertexAttribPointer(2, 3, gl.FLOAT, false, 3*4, nil)
-	gl.EnableVertexAttribArray(2)
-	//
-	//
 
 	gogl.UnbindVertexArray()
 
@@ -218,12 +140,6 @@ func main() {
 		shaderProgram.SetMat4("projection", projectionMatrix)
 		shaderProgram.SetMat4("view", viewMatrix)
 
-		//set light
-		shaderProgram.SetVec3("lightPos", mgl32.Vec3{0.0, 0.0, 1.0})
-		shaderProgram.SetVec3("lightColor", mgl32.Vec3{0.4, 0.4, 0.4})
-		shaderProgram.SetVec3("ambientColor", mgl32.Vec3{0.5, 0.5, 0.0})
-		shaderProgram.SetVec3("viewPos", camera.Position)
-
 		gogl.BindTexture(texture)
 		gogl.BindVertexArray(VAO)
 
@@ -231,8 +147,27 @@ func main() {
 			modelMatrix := mgl32.Ident4()
 			modelMatrix = mgl32.Translate3D(pos.X(), pos.Y(), pos.Z()).Mul4(modelMatrix)
 			_ = i
-			// angle := 90.0 * float32(i)
-			// modelMatrix = mgl32.HomogRotate3D(mgl32.DegToRad(angle), mgl32.Vec3{1.0, 0.3, 0.5}).Mul4(modelMatrix)
+			// i = 0
+			if i == 1 {
+				// angle := 90.0 * float32(i)
+				// modelMatrix = mgl32.HomogRotate3D(mgl32.DegToRad(angle), mgl32.Vec3{0.0, 0.0, 0.0}).Mul4(modelMatrix)
+				angle := getAngle()
+				modelMatrix = mgl32.HomogRotate3D(mgl32.DegToRad(float32(angle)), mgl32.Vec3{0.0, 1.0, 0.0}).Mul4(modelMatrix)
+
+				// fmt.Printf("modelMatrix.Diag().Y(): %v\n", modelMatrix.Diag().Z())
+				color1 := valueToRGB(angle, 360.0)
+
+				// fmt.Printf("color: %v\n", color1)
+				// color1 := mgl32.Vec4{220.0, 68.0, 156.0, 1.0}
+				fmt.Printf("color1: %v\n", color1)
+				shaderProgram.SetVec4("color", color1)
+
+				// modelMatrix = mgl32.HomogRotate3D(mgl32.DegToRad(float32(angle)), mgl32.Vec3{0.0, 1.0, 0.0}).Mul4(modelMatrix)
+
+			} else {
+				shaderProgram.SetVec4("color", mgl32.Vec4{1.0, 0.3, 0.0, 0.0})
+			}
+
 			shaderProgram.SetMat4("model", modelMatrix)
 			gl.DrawArrays(gl.TRIANGLES, 0, 36)
 		}
@@ -241,4 +176,30 @@ func main() {
 		shaderProgram.CheckShadersForChanges()
 		elapsedTime = float32(time.Since(frameStart).Seconds() * 1000)
 	}
+}
+
+var angle float32 = 0.0
+
+func calcAngle() {
+	angle = 0.0
+	for {
+		time.Sleep(time.Millisecond * 10)
+		angle = (angle + float32(1.0))
+		if angle > 360 {
+			angle = 0
+		}
+	}
+}
+
+func getAngle() float32 {
+	return angle
+}
+
+func valueToRGB(v, max float32) mgl32.Vec4 {
+	hue := v
+	r, g, b := colorutil.HsvToRgb(float64(hue), float64(1), float64(1))
+
+	ret := mgl32.Vec4{float32(r) / 256, float32(g) / 256, float32(b) / 256, 1.0}
+
+	return ret
 }
