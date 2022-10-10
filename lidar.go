@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math"
+
 	"github.com/PerformLine/go-stockutil/colorutil"
 	"github.com/go-gl/mathgl/mgl32"
 )
@@ -17,6 +19,17 @@ func valueToRGB(v, max float32) mgl32.Vec4 {
 	return ret
 }
 
-func calculateCubePos(angle, distance float32) {
+// https://stackoverflow.com/questions/30619901/calculate-3d-point-coordinates-using-horizontal-and-vertical-angles-and-slope-di
+/*
+distance - distance
+theta: the zenith angle,
+phi: the azimuth angle
+*/
+func calculateCubePos(distance, theta, phi float32) mgl32.Vec3 {
 
+	x := distance * float32(math.Sin(float64(mgl32.DegToRad(theta)))*math.Cos(float64(mgl32.DegToRad(phi))))
+	y := distance * float32(math.Sin(float64(mgl32.DegToRad(theta)))*math.Sin(float64(mgl32.DegToRad(phi))))
+	z := distance * float32(math.Cos(float64(mgl32.DegToRad(theta))))
+
+	return mgl32.Vec3{x, y, z}
 }
