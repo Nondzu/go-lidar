@@ -8,7 +8,6 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/nondzu/test1/gogl"
 
-	"github.com/PerformLine/go-stockutil/colorutil"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -56,7 +55,8 @@ func main() {
 
 	cubePositions := []mgl32.Vec3{
 		{0.0, 0.0, 0.0},
-		{3.0, 3.0, 0.0},
+		{0.0, 1.0, 0.0},
+		// {2.0, 2.0, 0.0},
 		// {6.0, 0.0, 0.0},
 		// {3.0, 3.0, 0.0},
 		// {3.0, 6.0, 0.0},
@@ -159,7 +159,7 @@ func main() {
 
 				// fmt.Printf("color: %v\n", color1)
 				// color1 := mgl32.Vec4{220.0, 68.0, 156.0, 1.0}
-				fmt.Printf("color1: %v\n", color1)
+				// fmt.Printf("color1: %v\n", color1)
 				shaderProgram.SetVec4("color", color1)
 
 				// modelMatrix = mgl32.HomogRotate3D(mgl32.DegToRad(float32(angle)), mgl32.Vec3{0.0, 1.0, 0.0}).Mul4(modelMatrix)
@@ -193,13 +193,4 @@ func calcAngle() {
 
 func getAngle() float32 {
 	return angle
-}
-
-func valueToRGB(v, max float32) mgl32.Vec4 {
-	hue := v
-	r, g, b := colorutil.HsvToRgb(float64(hue), float64(1), float64(1))
-
-	ret := mgl32.Vec4{float32(r) / 256, float32(g) / 256, float32(b) / 256, 1.0}
-
-	return ret
 }
