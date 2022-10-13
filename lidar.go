@@ -28,8 +28,8 @@ phi: the azimuth angle
 func calculateCubePos(distance, theta, phi float32) mgl32.Vec3 {
 
 	x := distance * float32(math.Sin(float64(mgl32.DegToRad(theta)))*math.Cos(float64(mgl32.DegToRad(phi))))
-	y := distance * float32(math.Sin(float64(mgl32.DegToRad(theta)))*math.Sin(float64(mgl32.DegToRad(phi))))
-	z := distance * float32(math.Cos(float64(mgl32.DegToRad(theta))))
+	z := distance * float32(math.Sin(float64(mgl32.DegToRad(theta)))*math.Sin(float64(mgl32.DegToRad(phi))))
+	y := distance * float32(math.Cos(float64(mgl32.DegToRad(theta))))
 
 	return mgl32.Vec3{x, y, z}
 }

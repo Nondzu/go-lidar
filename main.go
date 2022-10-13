@@ -55,14 +55,6 @@ func main() {
 
 	cubePositions := []mgl32.Vec3{
 		{0.0, 0.0, 0.0},
-		// {0.0, 1.0, 0.0},
-		// {2.0, 2.0, 0.0},
-		// {6.0, 0.0, 0.0},
-		// {3.0, 3.0, 0.0},
-		// {3.0, 6.0, 0.0},
-
-		// {2.0, 4.5, -15.0},
-		// {2.0, 5.0, -10.0},
 	}
 
 	gogl.GenBindBuffer(gl.ARRAY_BUFFER)
@@ -76,20 +68,6 @@ func main() {
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 5*4, gl.PtrOffset(3*4))
 	gl.EnableVertexAttribArray(1)
 	gogl.UnbindVertexArray()
-	// _ = VAO
-
-	//VAO2
-	// gogl.GenBindBuffer(gl.ARRAY_BUFFER)
-	// VAO2 := gogl.GenBindVertexArray()
-	// gogl.BufferDataFloat(gl.ARRAY_BUFFER, cubeSmallVertices, gl.STATIC_DRAW)
-
-	// gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 5*4, nil)
-	// gl.EnableVertexAttribArray(0)
-
-	// gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 5*4, gl.PtrOffset(3*4))
-	// gl.EnableVertexAttribArray(1)
-	// _ = VAO2
-	// gogl.UnbindVertexArray()
 
 	//new camera
 	position := mgl32.Vec3{2.0, 2.5, 10.0}
@@ -140,7 +118,6 @@ func main() {
 			dir = gogl.Backward
 		}
 
-		// mouseX, mouseY, _ := sdl.GetRelativeMouseState()
 		camera.UpdateCamera(dir, elapsedTime, float32(mouseX), float32(mouseY))
 
 		gl.ClearColor(0.0, 0.0, 0.0, 0.0)
@@ -148,9 +125,7 @@ func main() {
 
 		shaderProgram.Use()
 		projectionMatrix := mgl32.Perspective(mgl32.DegToRad(45.0), float32(winWidth)/float32(winHeight), 0.1, 100.0)
-		// viewMatrix := mgl32.Ident4()
 		viewMatrix := camera.GetViewMatrix()
-		// viewMatrix = mgl32.Translate3D(x, -3.0, z)
 
 		shaderProgram.SetMat4("projection", projectionMatrix)
 		shaderProgram.SetMat4("view", viewMatrix)
@@ -162,54 +137,19 @@ func main() {
 			modelMatrix := mgl32.Ident4()
 			modelMatrix = mgl32.Translate3D(pos.X(), pos.Y(), pos.Z()).Mul4(modelMatrix)
 			_ = i
-			// if i == 1 {
-			// 	// angle := 90.0 * float32(i)
-			// 	// modelMatrix = mgl32.HomogRotate3D(mgl32.DegToRad(angle), mgl32.Vec3{0.0, 0.0, 0.0}).Mul4(modelMatrix)
-			// 	angle := getAngle()
-			// 	modelMatrix = mgl32.HomogRotate3D(mgl32.DegToRad(float32(angle)), mgl32.Vec3{0.0, 1.0, 0.0}).Mul4(modelMatrix)
 
-			// 	// fmt.Printf("modelMatrix.Diag().Y(): %v\n", modelMatrix.Diag().Z())
-			// 	color1 := valueToRGB(angle, 360.0)
-
-			// 	// fmt.Printf("color: %v\n", color1)
-			// 	// color1 := mgl32.Vec4{220.0, 68.0, 156.0, 1.0}
-			// 	// fmt.Printf("color1: %v\n", color1)
-			// 	shaderProgram.SetVec4("color", color1)
-
-			// 	// modelMatrix = mgl32.HomogRotate3D(mgl32.DegToRad(float32(angle)), mgl32.Vec3{0.0, 1.0, 0.0}).Mul4(modelMatrix)
-
-			// } else {
-
-			// }
 			shaderProgram.SetVec4("color", mgl32.Vec4{1.0, 0.3, 0.0, 0.0})
-
 			shaderProgram.SetMat4("model", modelMatrix) // set model
 			gl.DrawArrays(gl.TRIANGLES, 0, 36)          //draw model
 
 		}
-		//draw small cube
-		// {
-		// 	// angle := float32(angle)
-		// 	// fmt.Printf("angle: %v\n", angle)
-		// 	// fmt.Printf("mgl32.DegToRad(angle): %v\n", mgl32.DegToRad(0))
-		// 	// pos := calculateCubePos(4.55, angle, 250)
-		// 	// pos := calculateCubePos(4.55, 180, 180)
-		// 	pos := calculateCubePos(4, 90+75, 180-30)
-		// 	fmt.Printf("pos: %v\n", pos)
-		// 	modelMatrix2 := mgl32.Ident4()
-		// 	// modelMatrix2 = mgl32.HomogRotate3D(mgl32.DegToRad(float32(angle)), mgl32.Vec3{0.0, 1.0, 0.0}).Mul4(modelMatrix2)
-		// 	// modelMatrix2 = mgl32.HomogRotate3D(mgl32.DegToRad(float32(angle)), mgl32.Vec3{1.0, 0.0, 0.0}).Mul4(modelMatrix2)
-		// 	modelMatrix2 = mgl32.Translate3D(pos.X(), pos.Y(), pos.Z()).Mul4(modelMatrix2)
-		// 	shaderProgram.SetVec4("color", mgl32.Vec4{0.0, 0.0, 1.0, 0.0})
-		// 	shaderProgram.SetMat4("model", modelMatrix2) // set model
-		// 	gl.DrawArrays(gl.TRIANGLES, 36, 73)          //draw model
-		// }
 
+		//draw demo
 		for b := 0; b < 180; b = b + 1 {
-			for a := 0; a < 180; a = a + 1 {
+			for a := 180; a < 360; a = a + 1 {
 				//draw small cube
 				{
-					pos := calculateCubePos(13, 90+float32(b), 180-float32(a))
+					pos := calculateCubePos(13, float32(b), float32(a))
 					modelMatrix2 := mgl32.Ident4()
 					// modelMatrix2 = mgl32.HomogRotate3D(mgl32.DegToRad(float32(angle)), mgl32.Vec3{0.0, 1.0, 0.0}).Mul4(modelMatrix2)
 					// modelMatrix2 = mgl32.HomogRotate3D(mgl32.DegToRad(float32(angle)), mgl32.Vec3{1.0, 0.0, 0.0}).Mul4(modelMatrix2)
@@ -220,6 +160,8 @@ func main() {
 				}
 			}
 		}
+
+		drawCube(angle2, angle, shaderProgram)
 
 		{
 			modelMatrix2 := mgl32.Ident4()
@@ -245,30 +187,28 @@ func main() {
 }
 
 var angle float32 = 0.0
+var angle2 float32 = 0.0
 
-// var angle2 float32 = 0.0
+func drawCube(zenith, azimuth float32, shader *gogl.Shader) {
+	pos := calculateCubePos(5, float32(zenith), float32(360-azimuth))
+	modelMatrix2 := mgl32.Ident4()
+	modelMatrix2 = mgl32.Translate3D(pos.X(), pos.Y(), pos.Z()).Mul4(modelMatrix2)
+	shader.SetVec4("color", mgl32.Vec4{0.0, 1.0, 0.0, 0.0})
+	shader.SetMat4("model", modelMatrix2) // set model
+	gl.DrawArrays(gl.TRIANGLES, 36, 73)   //draw model
+}
 
 func calcAngle() {
 	angle = 0.0
 	for {
 		time.Sleep(time.Millisecond * 5)
 		angle = (angle + float32(1.0))
-		if angle > 180 {
+		if angle > 360 {
 			angle = 0
-			// angle2 = (angle2 + float32(1.0))
-			// if angle2 > 90 {
-			// 	angle2 = 0
-			// }
+			angle2 = (angle2 + float32(5.0))
+			if angle2 > 180 {
+				angle2 = 0
+			}
 		}
 	}
 }
-
-func getAngle() float32 {
-	return angle
-}
-
-// func getAngle2() float32 {
-// 	return angle2
-// }
-
-// func calculate
